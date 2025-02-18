@@ -2,8 +2,11 @@ from typing import Dict, List, Any
 import asyncio
 from datetime import datetime
 from ..core.redis_manager import RedisManager
+from collections import defaultdict
 
 class VisitCounterService:
+    locks = defaultdict(asyncio.Lock)
+    visit_counter = defaultdict(int)
     def __init__(self):
         """Initialize the visit counter service with Redis manager"""
         self.redis_manager = RedisManager()
@@ -16,6 +19,8 @@ class VisitCounterService:
             page_id: Unique identifier for the page
         """
         # TODO: Implement visit count increment
+        async with VisitCounterService.locks[page_id]:
+            VisitCounterService.visit_counter[page_id] += 1
         pass
 
     async def get_visit_count(self, page_id: str) -> int:
@@ -29,4 +34,6 @@ class VisitCounterService:
             Current visit count
         """
         # TODO: Implement getting visit count
+        async with VisitCounterService.locks[page_id]:
+            return VisitCounterService.visit_counter[page_id]
         return 0
