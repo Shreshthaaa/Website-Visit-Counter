@@ -27,7 +27,7 @@ Ensure the following are installed:
 1. Clone this repository:
 ```
 git clone https://github.com/Shreshthaaa/Website-Visit-Counter.git
-cd visit_counter_assignment
+cd Website-Visit-Counter
 ```
 
 2. Set up environment variables (create a `.env` file in the root directory):
