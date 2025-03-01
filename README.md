@@ -1,83 +1,77 @@
-# Visit Counter Assignment
+# Website Visit Counter
 
-This is a starter codebase for implementing a distributed visit counter service using FastAPI, Redis, and Docker.
+## Overview
+This is my submission for the **Website Visit Counter** assignment. The project efficiently tracks page visits using caching strategies, Redis for global caching, and scalability techniques such as **sharding, batching, and consistent hashing**.
 
-## Architecture Overview
+## Features
+* **Basic Visit Counter**: Tracks visits to a page.
+* **Redis Integration**: Stores visit counts persistently.
+* **Application Layer Caching**: Reduces redundant Redis reads.
+* **Batching Write Requests**: Optimizes write operations.
+* **Redis Sharding**: Ensures scalability and fault tolerance.
 
-The system is designed with the following components:
+## Tech Stack
+* **Backend**: FastAPI (Python)
+* **Database**: Redis
+* **Containerization**: Docker
 
-1. **FastAPI Application**: Handles HTTP requests and provides REST API endpoints
-2. **Redis Cluster**: Multiple Redis instances for distributed storage
-3. **Consistent Hashing**: For distributing keys across Redis nodes
-4. **Batch Processing**: For optimizing write operations
+## Installation & Setup
 
-## Setup Instructions
+### Prerequisites
+Ensure the following are installed:
+* Python 3.8+
+* Docker & Docker Compose
+* Redis
 
-1. Make sure you have Docker and Docker Compose installed
-2. Clone this repository
-3. Run the application:
-   ```bash
-   docker compose up --build
-   ```
-4. The API will be available at `http://localhost:8000`
+### Steps to Run
+1. Clone this repository:
+```
+git clone https://github.com/Shreshthaaa/Website-Visit-Counter.git
+cd visit_counter_assignment
+```
 
-## Implementation Tasks
+2. Set up environment variables (create a `.env` file in the root directory):
+```
+REDIS_NODES=redis://redis1:7070,redis://redis2:7071
+```
 
-The codebase contains TODOs in various files that need to be implemented:
+3. Start the application and Redis instances using Docker:
+```
+docker-compose up --build
+```
 
-1. **Consistent Hashing** (`app/core/consistent_hash.py`):
-   - Implement the consistent hashing ring
-   - Handle node addition and removal
-   - Implement key distribution
-
-2. **Redis Manager** (`app/core/redis_manager.py`):
-   - Implement connection pooling
-   - Handle Redis operations with retries
-   - Implement batch operations
-
-3. **Visit Counter Service** (`app/services/visit_counter.py`):
-   - Implement visit counting logic
-   - Implement batch processing
-   - Handle concurrent updates
+4. The FastAPI server will be available at `http://localhost:8000`
 
 ## API Endpoints
 
-- `POST /visit/{page_id}`: Record a visit
-- `GET /visits/{page_id}`: Get visit count
-
-## Testing
-
-You can test the API using curl or any HTTP client:
-
-```bash
-# Record a visit
-curl -X POST http://localhost:8000/visit/123
-
-# Get visit count
-curl http://localhost:8000/visits/123
+### 1. Record a Page Visit
+* **Endpoint:** `POST /visit/{page_id}`
+* **Description:** Increments the visit count for a given page.
+* **Response:**
+```json
+{ "status": "success", "message": "Visit recorded for page {page_id}" }
 ```
 
-## File Structure
-
+### 2. Get Visit Count
+* **Endpoint:** `GET /visits/{page_id}`
+* **Description:** Retrieves the visit count for a specific page.
+* **Response Format:**
+```json
+{ "count": 123, "served_via": "redis_7070" }
 ```
-.
-├── app/
-│   ├── api/
-│   │   └── v1/
-│   │       └── endpoints/
-│   │           └── counter.py
-│   │       └── api.py
-│   ├── core/
-│   │   ├── config.py
-│   │   ├── consistent_hash.py
-│   │   └── redis_manager.py
-│   ├── services/
-│   │   └── visit_counter.py
-│   ├── schemas/
-│   │   └── counter.py
-│   └── main.py
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── README.md
-``` 
+   * `served_via`: Shows if data was fetched from **in-memory cache** or a **Redis shard**.
+
+## System Design
+
+### 1. **Application Layer Caching**
+* Uses an **in-memory dictionary** to temporarily store visit counts.
+* Cache expiry time: **5 seconds**.
+* If cache expires, fetches count from Redis.
+
+### 2. **Batching Write Requests**
+* Stores visit counts in an **in-memory buffer** before writing to Redis.
+* Flushes the buffer to Redis **every 30 seconds** to reduce write operations.
+
+### 3. **Redis Sharding with Consistent Hashing**
+* Distributes keys across multiple Redis instances (**redis_7070, redis_7071**).
+* Ensures scalability and fault tolerance.
